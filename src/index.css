@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-pink: #FFD6E8;
+  --color-pink-dark: #FF85B3;
+  --color-lavender: #DCC6FF;
+  --color-lavender-dark: #B990FF;
+  --color-white: #FFFFFF;
+  --color-gray-light: #F8F8F8;
+  --color-gray: #E0E0E0;
+  --color-text-dark: #333333;
+  --color-text-muted: #888888;
+  --color-danger: #FF6B6B;
+  --color-success: #4CAF50;
+  
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-gray-light);
+  color: var(--color-text-dark);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-text-dark);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, textarea {
+  font-family: var(--font-body);
+  outline: none;
+}
+
+/* Base Utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}

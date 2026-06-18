@@ -1,0 +1,138 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Sweet Bunny Keychain",
+      "price": 18000,
+      "stock": 25,
+      "description": "Gantungan kunci akrilik karakter kelinci lucu dengan warna pastel yang menggemaskan. Cocok untuk tas, kunci, atau hadiah!",
+      "category": "Keychain",
+      "image": "https://placehold.co/400x400/FFD6E8/333333?text=Bunny+Keychain"
+    },
+    {
+      "id": 2,
+      "name": "Cherry Bow Tote Bag",
+      "price": 45000,
+      "stock": 10,
+      "description": "Tote bag kanvas tebal dengan motif pita ceri yang cantik.",
+      "category": "Tote Bag",
+      "image": "https://placehold.co/400x400/DCC6FF/333333?text=Cherry+Bow+Tote+Bag"
+    },
+    {
+      "id": 3,
+      "name": "Acrylic Bear Keychain",
+      "price": 15000,
+      "stock": 30,
+      "description": "Gantungan kunci beruang pastel yang aesthetic.",
+      "category": "Keychain",
+      "image": "https://placehold.co/400x400/FFD6E8/333333?text=Bear+Keychain"
+    },
+    {
+      "id": 4,
+      "name": "Daisy Phone Case",
+      "price": 35000,
+      "stock": 15,
+      "description": "Casing handphone motif bunga daisy pelindung ekstra.",
+      "category": "Case HP",
+      "image": "https://placehold.co/400x400/DCC6FF/333333?text=Daisy+Phone+Case"
+    },
+    {
+      "id": 5,
+      "name": "Pink Scrunchie",
+      "price": 12000,
+      "stock": 50,
+      "description": "Ikat rambut lucu dan super lembut.",
+      "category": "Scrunchie",
+      "image": "https://placehold.co/400x400/FFD6E8/333333?text=Pink+Scrunchie"
+    },
+    {
+      "id": 6,
+      "name": "Flower Bracelet",
+      "price": 15000,
+      "stock": 20,
+      "description": "Gelang manik-manik bunga pastel.",
+      "category": "Gelang",
+      "image": "https://placehold.co/400x400/DCC6FF/333333?text=Flower+Bracelet"
+    },
+    {
+      "id": 7,
+      "name": "Bunny Sticker Pack",
+      "price": 10000,
+      "stock": 40,
+      "description": "Koleksi stiker kelinci lucu untuk menghias jurnal.",
+      "category": "Sticker",
+      "image": "https://placehold.co/400x400/FFD6E8/333333?text=Bunny+Sticker"
+    },
+    {
+      "id": 8,
+      "name": "Heart Charm Bracelet",
+      "price": 18000,
+      "stock": 15,
+      "description": "Gelang manis dengan charm bentuk hati.",
+      "category": "Gelang",
+      "image": "https://placehold.co/400x400/DCC6FF/333333?text=Heart+Charm+Bracelet"
+    },
+    {
+      "id": 9,
+      "name": "Kawaii Tote Bag",
+      "price": 50000,
+      "stock": 25,
+      "description": "Tote bag desain kawaii untuk sehari-hari.",
+      "category": "Tote Bag",
+      "image": "https://placehold.co/400x400/FFD6E8/333333?text=Kawaii+Tote+Bag"
+    },
+    {
+      "id": 10,
+      "name": "Purple Heart Case",
+      "price": 38000,
+      "stock": 20,
+      "description": "Casing handphone warna ungu bermotif hati.",
+      "category": "Case HP",
+      "image": "https://placehold.co/400x400/DCC6FF/333333?text=Purple+Heart+Case"
+    },
+    {
+      "id": 11,
+      "name": "Bunny Mini Doll",
+      "price": 25000,
+      "stock": 10,
+      "description": "Boneka mini kelinci yang imut.",
+      "category": "Boneka",
+      "image": "https://placehold.co/400x400/FFD6E8/333333?text=Bunny+Mini+Doll"
+    },
+    {
+      "id": 12,
+      "name": "Ribbon Keychain",
+      "price": 12000,
+      "stock": 35,
+      "description": "Gantungan kunci bentuk pita yang cantik.",
+      "category": "Keychain",
+      "image": "https://placehold.co/400x400/DCC6FF/333333?text=Ribbon+Keychain"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "name": "Dinda Aulia",
+      "email": "dinda.aulia@gmail.com",
+      "password": "password123",
+      "address": "Jl. Mawar No 10"
+    }
+  ],
+  "carts": [
+    {
+      "id": 1,
+      "userId": 1,
+      "productId": 1,
+      "quantity": 2
+    }
+  ],
+  "wishlists": [
+    {
+      "id": 1,
+      "userId": 1,
+      "productId": 2
+    }
+  ],
+  "orders": [],
+  "chatHistory": []
+}
