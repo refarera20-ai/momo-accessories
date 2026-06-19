@@ -1,6 +1,7 @@
 import { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ShopContext from '../context/ShopContext';
+import { supabase } from '../lib/supabase';
 import { FiHome, FiBox, FiSettings, FiMessageSquare, FiList, FiLogOut, FiEdit, FiTrash2, FiPlus, FiSave, FiUpload } from 'react-icons/fi';
 
 export default function AdminDashboard() {
@@ -481,24 +482,35 @@ function ManageCategories({ categories, addCategory, deleteCategory }) {
 // Fitur Upload Gambar Drag & Drop
 function ImageUploader({ value, onChange, label }) {
   const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => onChange(reader.result);
-      reader.readAsDataURL(file);
+  const processFile = async (file) => {
+    if (!file) return;
+    setIsUploading(true);
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+    const filePath = `uploads/${fileName}`;
+    
+    try {
+      const { error: uploadError } = await supabase.storage.from('momo-images').upload(filePath, file);
+      if (uploadError) throw uploadError;
+      
+      const { data } = supabase.storage.from('momo-images').getPublicUrl(filePath);
+      onChange(data.publicUrl);
+    } catch (error) {
+      console.error("Upload error: ", error);
+      alert('Gagal mengunggah gambar!');
+    } finally {
+      setIsUploading(false);
     }
   };
 
+  const handleFileChange = (e) => processFile(e.target.files[0]);
+
   const handleDrop = (e) => {
     e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => onChange(reader.result);
-      reader.readAsDataURL(file);
-    }
+    processFile(e.dataTransfer.files[0]);
   };
 
   return (
@@ -516,7 +528,13 @@ function ImageUploader({ value, onChange, label }) {
       >
         <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
         
-        {value ? (
+        {isUploading ? (
+          <div style={{ padding: '20px', color: 'var(--color-pink-dark)' }}>
+            <div style={{ border: '4px solid #f3f3f3', borderTop: '4px solid var(--color-pink-dark)', borderRadius: '50%', width: '30px', height: '30px', animation: 'spin 1s linear infinite', margin: '0 auto 10px auto' }}></div>
+            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+            <strong>Mengunggah Gambar...</strong>
+          </div>
+        ) : value ? (
           <div>
             <img src={value} alt="Preview" style={{ width: '100%', maxHeight: '200px', objectFit: 'contain', borderRadius: '8px' }} />
             <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>

@@ -1,83 +1,25 @@
 import { createContext, useState, useEffect } from 'react';
 import dbData from '../../db.json';
+import { supabase } from '../lib/supabase';
 
 const ShopContext = createContext();
 
 export const ShopProvider = ({ children }) => {
-  const [products, setProducts] = useState(() => {
-    try {
-      const savedProducts = localStorage.getItem('momo_products');
-      return savedProducts ? JSON.parse(savedProducts) : dbData.products || [];
-    } catch (e) {
-      return dbData.products || [];
-    }
-  });
-
-  const [cart, setCart] = useState(() => {
-    try {
-      const saved = localStorage.getItem('momo_cart');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
-  });
-
-  const [wishlist, setWishlist] = useState(() => {
-    try {
-      const saved = localStorage.getItem('momo_wishlist');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
-  });
-
-  const [orders, setOrders] = useState(() => {
-    try {
-      const saved = localStorage.getItem('momo_orders');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
-  });
-
-  const [chatHistory, setChatHistory] = useState(() => {
-    try {
-      const saved = localStorage.getItem('momo_chat');
-      const parsed = saved ? JSON.parse(saved) : null;
-      // Membuang riwayat lama yang berbentuk Array berhubung strukturnya Object sekarang
-      if (parsed && !Array.isArray(parsed)) return parsed;
-    } catch (e) {}
-    
-    // Obrolan default
-    return {
-      [dbData.users[0].id]: [{
-        id: new Date().getTime(),
-        text: "Halo kak 👋 Ada yang bisa kami bantu hari ini?",
-        sender: 'admin',
-        time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-      }]
-    };
-  });
-
-  const [unreadCustomer, setUnreadCustomer] = useState(() => {
-    try {
-      return Number(localStorage.getItem('momo_unread_customer')) || 0;
-    } catch (e) { return 0; }
-  });
-
-  const [unreadAdmin, setUnreadAdmin] = useState(() => {
-    try {
-      return Number(localStorage.getItem('momo_unread_admin')) || 0;
-    } catch (e) { return 0; }
-  });
-
+  const [products, setProducts] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [chatHistory, setChatHistory] = useState({});
+  const [categories, setCategories] = useState([]);
+  
+  // States that use localStorage purely for UI interactions
+  const [unreadCustomer, setUnreadCustomer] = useState(() => Number(localStorage.getItem('momo_unread_customer')) || 0);
+  const [unreadAdmin, setUnreadAdmin] = useState(() => Number(localStorage.getItem('momo_unread_admin')) || 0);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
-    try {
-      const saved = localStorage.getItem('momo_admin');
-      return saved ? JSON.parse(saved) : false;
-    } catch (e) {
-      return false;
-    }
+    try { return JSON.parse(localStorage.getItem('momo_admin')) || false; } catch (e) { return false; }
+  });
+  const [currentUser, setCurrentUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('momo_user')) || dbData.users[0]; } catch(e) { return dbData.users[0]; }
   });
 
   const defaultSettings = {
@@ -93,186 +35,180 @@ export const ShopProvider = ({ children }) => {
     promoActive: true,
     promoText: 'Diskon 20% untuk semua produk!'
   };
+  const [storeSettings, setStoreSettings] = useState(defaultSettings);
 
-  const defaultCategories = [
-    { id: 1, name: 'Keychain', icon: '🎀' },
-    { id: 2, name: 'Tote Bag', icon: '👜' },
-    { id: 3, name: 'Case HP', icon: '📱' },
-    { id: 4, name: 'Sticker', icon: '✨' },
-    { id: 5, name: 'Boneka', icon: '🧸' },
-    { id: 6, name: 'Gelang', icon: '💎' },
-    { id: 7, name: 'Kalung', icon: '🌷' },
-    { id: 8, name: 'Scrunchie', icon: '🎀' }
-  ];
-
-  const [storeSettings, setStoreSettings] = useState(() => {
-    try {
-      const saved = localStorage.getItem('momo_settings');
-      return saved ? JSON.parse(saved) : defaultSettings;
-    } catch(e) {
-      return defaultSettings;
+  const fetchData = async (table) => {
+    const { data, error } = await supabase.from(table).select('*').order('id', { ascending: false });
+    if (error) {
+      console.error(`Error fetching ${table}:`, error);
+      return [];
     }
-  });
+    return data;
+  };
 
-  const [categories, setCategories] = useState(() => {
-    try {
-      const saved = localStorage.getItem('momo_categories');
-      return saved ? JSON.parse(saved) : defaultCategories;
-    } catch(e) {
-      return defaultCategories;
+  const fetchSettings = async () => {
+    const { data, error } = await supabase.from('settings').select('*');
+    if (!error && data) {
+      const formatted = { ...defaultSettings };
+      data.forEach(item => {
+        try {
+          formatted[item.key] = typeof item.value === 'string' ? JSON.parse(item.value) : item.value;
+        } catch(e) { formatted[item.key] = item.value; }
+      });
+      setStoreSettings(formatted);
     }
-  });
+  };
 
-  const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem('momo_user');
-      return saved ? JSON.parse(saved) : dbData.users[0];
-    } catch(e) {
-      return dbData.users[0];
+  const fetchChats = async () => {
+    const { data, error } = await supabase.from('chat_messages').select('*').order('id', { ascending: true });
+    if (!error && data) {
+      const history = {};
+      data.forEach(msg => {
+        if (!history[msg.user_id]) history[msg.user_id] = [];
+        history[msg.user_id].push(msg);
+      });
+      setChatHistory(history);
     }
-  });
+  };
 
   useEffect(() => {
-    // Listen to storage changes for cross-tab synchronization
-    const handleStorageChange = (e) => {
-      try {
-        if (e.key === 'momo_products' && e.newValue) setProducts(JSON.parse(e.newValue));
-        if (e.key === 'momo_cart' && e.newValue) setCart(JSON.parse(e.newValue));
-        if (e.key === 'momo_wishlist' && e.newValue) setWishlist(JSON.parse(e.newValue));
-        if (e.key === 'momo_settings' && e.newValue) setStoreSettings(JSON.parse(e.newValue));
-        if (e.key === 'momo_categories' && e.newValue) setCategories(JSON.parse(e.newValue));
-        if (e.key === 'momo_chat' && e.newValue) setChatHistory(JSON.parse(e.newValue));
-        if (e.key === 'momo_unread_customer' && e.newValue) setUnreadCustomer(Number(e.newValue));
-        if (e.key === 'momo_unread_admin' && e.newValue) setUnreadAdmin(Number(e.newValue));
-        if (e.key === 'momo_orders' && e.newValue) setOrders(JSON.parse(e.newValue));
-      } catch (err) {
-        console.error("Error parsing storage change", err);
-      }
+    const loadAll = async () => {
+      setProducts(await fetchData('products'));
+      setCategories(await fetchData('categories'));
+      setCart(await fetchData('carts'));
+      setWishlist(await fetchData('wishlists'));
+      setOrders(await fetchData('orders'));
+      await fetchSettings();
+      await fetchChats();
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    loadAll();
+
+    const channel = supabase.channel('public_db_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, async () => setProducts(await fetchData('products')))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, async () => setCategories(await fetchData('categories')))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'carts' }, async () => setCart(await fetchData('carts')))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wishlists' }, async () => setWishlist(await fetchData('wishlists')))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async () => setOrders(await fetchData('orders')))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, async () => fetchSettings())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, async () => fetchChats())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
-  useEffect(() => { localStorage.setItem('momo_cart', JSON.stringify(cart)); }, [cart]);
-  useEffect(() => { localStorage.setItem('momo_wishlist', JSON.stringify(wishlist)); }, [wishlist]);
-  useEffect(() => { localStorage.setItem('momo_orders', JSON.stringify(orders)); }, [orders]);
-  useEffect(() => { localStorage.setItem('momo_chat', JSON.stringify(chatHistory)); }, [chatHistory]);
   useEffect(() => { localStorage.setItem('momo_unread_customer', unreadCustomer); }, [unreadCustomer]);
   useEffect(() => { localStorage.setItem('momo_unread_admin', unreadAdmin); }, [unreadAdmin]);
   useEffect(() => { if (currentUser) localStorage.setItem('momo_user', JSON.stringify(currentUser)); }, [currentUser]);
-  useEffect(() => { localStorage.setItem('momo_settings', JSON.stringify(storeSettings)); }, [storeSettings]);
-  useEffect(() => { localStorage.setItem('momo_categories', JSON.stringify(categories)); }, [categories]);
-  useEffect(() => { 
-    try {
-      localStorage.setItem('momo_products', JSON.stringify(products)); 
-    } catch (e) {
-      console.error("Failed to save momo_products to localStorage. Data might be too large.", e);
-    }
-  }, [products]);
   useEffect(() => { localStorage.setItem('momo_admin', JSON.stringify(isAdminLoggedIn)); }, [isAdminLoggedIn]);
 
-  const addToCart = (productId, quantity = 1) => {
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-
-    setCart(prevCart => {
-      const existing = prevCart.find(c => c.productId === productId);
-      if (existing) {
-        return prevCart.map(c => 
-          c.productId === productId ? { ...c, quantity: c.quantity + quantity } : c
-        );
-      }
-      return [...prevCart, { 
-        id: new Date().getTime(), 
-        userId: currentUser.id, 
-        productId, 
-        quantity, 
-        product 
-      }];
-    });
+  const addToCart = async (productId, quantity = 1) => {
+    const userId = currentUser.id;
+    const existing = cart.find(c => c.product_id === productId && c.user_id === userId);
+    
+    if (existing) {
+      const newQty = existing.quantity + quantity;
+      await supabase.from('carts').update({ quantity: newQty }).eq('id', existing.id);
+      // State updated via realtime
+    } else {
+      await supabase.from('carts').insert({
+        id: new Date().getTime(),
+        user_id: userId,
+        product_id: productId,
+        quantity
+      });
+    }
   };
 
-  const updateCartQuantity = (cartItemId, newQuantity) => {
+  const updateCartQuantity = async (cartItemId, newQuantity) => {
     if (newQuantity < 1) newQuantity = 1;
-    setCart(prevCart => prevCart.map(c => 
-      c.id === cartItemId ? { ...c, quantity: newQuantity } : c
-    ));
+    await supabase.from('carts').update({ quantity: newQuantity }).eq('id', cartItemId);
   };
 
-  const removeFromCart = (cartItemId) => {
-    setCart(prevCart => prevCart.filter(c => c.id !== cartItemId));
+  const removeFromCart = async (cartItemId) => {
+    await supabase.from('carts').delete().eq('id', cartItemId);
   };
 
-  const toggleWishlist = (productId) => {
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-
-    setWishlist(prev => {
-      const existing = prev.find(w => w.productId === productId);
-      if (existing) {
-        return prev.filter(w => w.id !== existing.id);
-      }
-      return [...prev, { 
-        id: new Date().getTime(), 
-        userId: currentUser.id, 
-        productId, 
-        product 
-      }];
-    });
+  const toggleWishlist = async (productId) => {
+    const userId = currentUser.id;
+    const existing = wishlist.find(w => w.product_id === productId && w.user_id === userId);
+    
+    if (existing) {
+      await supabase.from('wishlists').delete().eq('id', existing.id);
+    } else {
+      await supabase.from('wishlists').insert({
+        id: new Date().getTime(),
+        user_id: userId,
+        product_id: productId
+      });
+    }
   };
 
-  const checkoutOrder = (orderData) => {
-    const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  const checkoutOrder = async (orderData) => {
+    const userCart = cart.filter(c => c.user_id === currentUser.id);
+    const subtotal = userCart.reduce((sum, item) => {
+       const product = products.find(p => p.id === item.product_id);
+       return sum + ((product?.price || 0) * item.quantity);
+    }, 0);
     const shipping = 15000;
     
     const newOrder = {
-        ...orderData,
-        userId: currentUser.id,
+        id: `INV-${new Date().getTime()}`,
+        user_id: currentUser.id,
         date: new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }),
         status: 'Menunggu Pembayaran',
-        id: `INV-${new Date().getTime()}`,
         total: subtotal + shipping,
-        items: cart.map(c => ({
-            productId: c.productId,
-            name: c.product.name,
-            price: c.product.price,
-            quantity: c.quantity,
-            image: c.product.image
-        }))
+        ...orderData,
+        items: userCart.map(c => {
+            const product = products.find(p => p.id === c.product_id);
+            return {
+              productId: c.product_id,
+              name: product?.name,
+              price: product?.price,
+              quantity: c.quantity,
+              image: product?.image
+            };
+        })
     };
 
-    setOrders(prev => [newOrder, ...prev]);
+    await supabase.from('orders').insert(newOrder);
+    
+    // Hapus cart pengguna setelah checkout berhasil
+    for(const item of userCart) {
+      await supabase.from('carts').delete().eq('id', item.id);
+    }
+    
     return newOrder;
   };
 
-  const clearCart = () => setCart([]);
+  const clearCart = async () => {
+    const userCart = cart.filter(c => c.user_id === currentUser.id);
+    for(const item of userCart) {
+      await supabase.from('carts').delete().eq('id', item.id);
+    }
+  };
 
-  const sendMessage = (userId, text, sender) => {
-    const newMsg = {
+  const sendMessage = async (userId, text, sender) => {
+    await supabase.from('chat_messages').insert({
       id: new Date().getTime(),
+      user_id: userId,
       text,
-      sender, 
+      sender,
       time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-    };
-    
-    setChatHistory(prev => ({
-      ...prev,
-      [userId]: [...(prev[userId] || []), newMsg]
-    }));
+    });
 
     if (sender === 'customer') {
       setUnreadAdmin(prev => prev + 1);
-      setTimeout(() => {
-        setChatHistory(prev => ({
-          ...prev,
-          [userId]: [...(prev[userId] || []), {
-            id: new Date().getTime() + 1,
-            text: "Halo kak! Pesanan dan pertanyaan kakak akan segera kami proses. Ada yang bisa dibantu lagi? 😊",
-            sender: 'admin',
-            time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-          }]
-        }));
+      setTimeout(async () => {
+        await supabase.from('chat_messages').insert({
+          id: new Date().getTime() + 1,
+          user_id: userId,
+          text: "Halo kak! Pesanan dan pertanyaan kakak akan segera kami proses. Ada yang bisa dibantu lagi? 😊",
+          sender: 'admin',
+          time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        });
         setUnreadCustomer(prev => prev + 1);
       }, 1500);
     } else if (sender === 'admin') {
@@ -293,21 +229,53 @@ export const ShopProvider = ({ children }) => {
 
   const adminLogout = () => setIsAdminLoggedIn(false);
 
-  const addProduct = (product) => setProducts(prev => [{ ...product, id: new Date().getTime() }, ...prev]);
-  const editProduct = (id, updated) => setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updated } : p));
-  const deleteProduct = (id) => setProducts(prev => prev.filter(p => p.id !== id));
+  const addProduct = async (product) => {
+    await supabase.from('products').insert({ ...product, id: new Date().getTime() });
+  };
+  const editProduct = async (id, updated) => {
+    await supabase.from('products').update(updated).eq('id', id);
+  };
+  const deleteProduct = async (id) => {
+    await supabase.from('products').delete().eq('id', id);
+  };
 
-  const addCategory = (category) => setCategories(prev => [...prev, { ...category, id: new Date().getTime() }]);
-  const editCategory = (id, updated) => setCategories(prev => prev.map(c => c.id === id ? { ...c, ...updated } : c));
-  const deleteCategory = (id) => setCategories(prev => prev.filter(c => c.id !== id));
+  const addCategory = async (category) => {
+    await supabase.from('categories').insert({ ...category, id: new Date().getTime() });
+  };
+  const editCategory = async (id, updated) => {
+    await supabase.from('categories').update(updated).eq('id', id);
+  };
+  const deleteCategory = async (id) => {
+    await supabase.from('categories').delete().eq('id', id);
+  };
 
-  const updateSettings = (newSettings) => setStoreSettings(prev => ({ ...prev, ...newSettings }));
+  const updateSettings = async (newSettings) => {
+    const upserts = Object.entries(newSettings).map(([key, value]) => ({
+      key, 
+      value: JSON.stringify(value) // store as JSON string in jsonb column, or just raw value
+    }));
+    // Try to perform upsert, but Supabase SDK .upsert takes an array of rows
+    await supabase.from('settings').upsert(upserts, { onConflict: 'key' });
+  };
+
+  // Helper mappings for backward compatibility of UI
+  const mappedCart = cart.filter(c => c.user_id === currentUser.id).map(c => ({
+    ...c,
+    product: products.find(p => p.id === c.product_id),
+    productId: c.product_id // legacy UI mapping
+  }));
+
+  const mappedWishlist = wishlist.filter(w => w.user_id === currentUser.id).map(w => ({
+    ...w,
+    product: products.find(p => p.id === w.product_id),
+    productId: w.product_id // legacy UI mapping
+  }));
 
   return (
     <ShopContext.Provider value={{
       products,
-      cart: cart.map(c => ({ ...c, product: products.find(p => p.id === c.productId) || c.product })),
-      wishlist: wishlist.map(w => ({ ...w, product: products.find(p => p.id === w.productId) || w.product })),
+      cart: mappedCart,
+      wishlist: mappedWishlist,
       orders, chatHistory, storeSettings, categories, isAdminLoggedIn, currentUser,
       unreadCustomer, unreadAdmin, clearUnreadCustomer, clearUnreadAdmin,
       setCurrentUser, addToCart, updateCartQuantity, removeFromCart, toggleWishlist, checkoutOrder, clearCart, sendMessage,
