@@ -106,12 +106,11 @@ export const ShopProvider = ({ children }) => {
 
   const addToCart = async (productId, quantity = 1) => {
     const userId = currentUser.id;
-    const existing = cart.find(c => c.product_id === productId && c.user_id === userId);
+    const existing = cart.find(c => String(c.product_id) === String(productId) && String(c.user_id) === String(userId));
     
     if (existing) {
       const newQty = existing.quantity + quantity;
       await supabase.from('carts').update({ quantity: newQty }).eq('id', existing.id);
-      // State updated via realtime
     } else {
       await supabase.from('carts').insert({
         id: new Date().getTime(),
@@ -132,8 +131,8 @@ export const ShopProvider = ({ children }) => {
   };
 
   const toggleWishlist = async (productId) => {
-    const userId = currentUser.id;
-    const existing = wishlist.find(w => w.product_id === productId && w.user_id === userId);
+    const userId = currentUser?.id || 1;
+    const existing = wishlist.find(w => String(w.product_id) === String(productId) && String(w.user_id) === String(userId));
     
     if (existing) {
       await supabase.from('wishlists').delete().eq('id', existing.id);
@@ -147,9 +146,9 @@ export const ShopProvider = ({ children }) => {
   };
 
   const checkoutOrder = async (orderData) => {
-    const userCart = cart.filter(c => c.user_id === currentUser.id);
+    const userCart = cart.filter(c => String(c.user_id) === String(currentUser.id));
     const subtotal = userCart.reduce((sum, item) => {
-       const product = products.find(p => p.id === item.product_id);
+       const product = products.find(p => String(p.id) === String(item.product_id));
        return sum + ((product?.price || 0) * item.quantity);
     }, 0);
     const shipping = 15000;
@@ -161,7 +160,7 @@ export const ShopProvider = ({ children }) => {
         status: 'Menunggu Pembayaran',
         total: subtotal + shipping,
         items: userCart.map(c => {
-            const product = products.find(p => p.id === c.product_id);
+            const product = products.find(p => String(p.id) === String(c.product_id));
             return {
               productId: c.product_id,
               name: product?.name,
@@ -183,7 +182,7 @@ export const ShopProvider = ({ children }) => {
   };
 
   const clearCart = async () => {
-    const userCart = cart.filter(c => c.user_id === currentUser.id);
+    const userCart = cart.filter(c => String(c.user_id) === String(currentUser.id));
     for(const item of userCart) {
       await supabase.from('carts').delete().eq('id', item.id);
     }
@@ -258,15 +257,15 @@ export const ShopProvider = ({ children }) => {
   };
 
   // Helper mappings for backward compatibility of UI
-  const mappedCart = cart.filter(c => c.user_id === currentUser.id).map(c => ({
+  const mappedCart = cart.filter(c => String(c.user_id) === String(currentUser.id)).map(c => ({
     ...c,
-    product: products.find(p => p.id === c.product_id),
+    product: products.find(p => String(p.id) === String(c.product_id)),
     productId: c.product_id // legacy UI mapping
   })).filter(c => c.product !== undefined);
 
-  const mappedWishlist = wishlist.filter(w => w.user_id === currentUser.id).map(w => ({
+  const mappedWishlist = wishlist.filter(w => String(w.user_id) === String(currentUser.id)).map(w => ({
     ...w,
-    product: products.find(p => p.id === w.product_id),
+    product: products.find(p => String(p.id) === String(w.product_id)),
     productId: w.product_id // legacy UI mapping
   })).filter(w => w.product !== undefined);
 

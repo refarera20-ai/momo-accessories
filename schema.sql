@@ -137,4 +137,5 @@ CREATE POLICY "Public Delete" ON storage.objects FOR DELETE TO public USING (buc
 
 -- 10. Aktifkan Realtime Subscription
 -- Hapus tabel dari publication jika sudah ada (mencegah error duplikasi), lalu tambahkan
-alter publication supabase_realtime add table categories, products, users, settings, carts, wishlists, orders, chat_messages;
+DROP PUBLICATION IF EXISTS supabase_realtime;
+CREATE PUBLICATION supabase_realtime FOR TABLE categories, products, users, settings, carts, wishlists, orders, chat_messages;

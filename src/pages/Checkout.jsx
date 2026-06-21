@@ -42,11 +42,11 @@ export default function Checkout() {
     // Clear the cart
     clearCart();
 
-    // Redirect to WhatsApp
-    window.open(waUrl, '_blank');
+    // Redirect to WhatsApp safely for Mobile Browsers
+    window.location.href = waUrl;
     
-    alert('Pesanan berhasil dibuat dan ditautkan ke WhatsApp!');
-    navigate('/orders');
+    // alert is skipped or placed differently because of redirect, but we'll show it before redirect if possible or just navigate
+    // Actually, setting window.location.href redirects away, so no need for React navigate or alert after.
   };
 
   if (cart.length === 0) {
