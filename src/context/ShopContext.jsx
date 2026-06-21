@@ -160,7 +160,6 @@ export const ShopProvider = ({ children }) => {
         date: new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }),
         status: 'Menunggu Pembayaran',
         total: subtotal + shipping,
-        ...orderData,
         items: userCart.map(c => {
             const product = products.find(p => p.id === c.product_id);
             return {
@@ -263,13 +262,13 @@ export const ShopProvider = ({ children }) => {
     ...c,
     product: products.find(p => p.id === c.product_id),
     productId: c.product_id // legacy UI mapping
-  }));
+  })).filter(c => c.product !== undefined);
 
   const mappedWishlist = wishlist.filter(w => w.user_id === currentUser.id).map(w => ({
     ...w,
     product: products.find(p => p.id === w.product_id),
     productId: w.product_id // legacy UI mapping
-  }));
+  })).filter(w => w.product !== undefined);
 
   return (
     <ShopContext.Provider value={{
