@@ -168,4 +168,21 @@ input, textarea {
   h1 {
     font-size: 2.2rem !important;
   }
+
+  /* Cart Items */
+  .cart-item {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+  .cart-item img {
+    margin: 0 auto;
+  }
+  .cart-item > div {
+    min-width: 100% !important;
+  }
+  .cart-actions {
+    justify-content: center;
+    width: 100%;
+  }
 }

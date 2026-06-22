@@ -23,22 +23,22 @@ export default function Cart() {
           
           <div style={{ flex: '1 1 600px', backgroundColor: '#fff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
             {cart.map((item) => (
-              <div key={item.id} style={{ display: 'flex', gap: '20px', padding: '20px 0', borderBottom: '1px solid var(--color-gray)', alignItems: 'center' }}>
-                <img src={item.product.image || 'https://placehold.co/400x400/FFD6E8/333333?text=Produk'} alt={item.product.name} style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '12px' }} onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/400x400/FFD6E8/333333?text=Produk"; }} />
+              <div key={item.id} className="cart-item" style={{ display: 'flex', gap: '15px', padding: '20px 0', borderBottom: '1px solid var(--color-gray)', alignItems: 'center' }}>
+                <img src={item.product.image || 'https://placehold.co/400x400/FFD6E8/333333?text=Produk'} alt={item.product.name} style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '12px' }} onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/400x400/FFD6E8/333333?text=Produk"; }} />
                 
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>{item.product.name}</h3>
+                <div style={{ flex: 1, minWidth: '120px' }}>
+                  <h3 style={{ fontSize: '1.1rem', marginBottom: '5px' }}>{item.product.name}</h3>
                   <p style={{ fontWeight: 'bold', color: 'var(--color-pink-dark)' }}>{formatting.format(item.product.price)}</p>
                 </div>
                 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'var(--color-gray-light)', borderRadius: '20px', padding: '5px' }}>
-                    <button onClick={() => updateCartQuantity(item.id, item.quantity - 1)} style={{ padding: '5px 10px', fontSize: '1.2rem', border: 'none', background: 'transparent', cursor: 'pointer' }}><FiMinus /></button>
-                    <span style={{ padding: '0 10px', fontWeight: 'bold' }}>{item.quantity}</span>
-                    <button onClick={() => updateCartQuantity(item.id, item.quantity + 1)} style={{ padding: '5px 10px', fontSize: '1.2rem', border: 'none', background: 'transparent', cursor: 'pointer' }}><FiPlus /></button>
+                <div className="cart-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'var(--color-gray-light)', borderRadius: '20px', padding: '2px' }}>
+                    <button onClick={() => updateCartQuantity(item.id, item.quantity - 1)} style={{ padding: '5px 10px', fontSize: '1.1rem', border: 'none', background: 'transparent', cursor: 'pointer' }}><FiMinus /></button>
+                    <span style={{ padding: '0 5px', fontWeight: 'bold' }}>{item.quantity}</span>
+                    <button onClick={() => updateCartQuantity(item.id, item.quantity + 1)} style={{ padding: '5px 10px', fontSize: '1.1rem', border: 'none', background: 'transparent', cursor: 'pointer' }}><FiPlus /></button>
                   </div>
                   
-                  <button onClick={() => removeFromCart(item.id)} style={{ color: 'var(--color-danger)', fontSize: '1.5rem', padding: '10px', border: 'none', background: 'transparent', cursor: 'pointer' }} title="Hapus">
+                  <button onClick={() => removeFromCart(item.id)} style={{ color: 'var(--color-danger)', fontSize: '1.3rem', padding: '10px', border: 'none', background: 'transparent', cursor: 'pointer' }} title="Hapus">
                     <FiTrash2 />
                   </button>
                 </div>
