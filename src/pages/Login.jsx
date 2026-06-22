@@ -1,16 +1,29 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import ShopContext from '../context/ShopContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorText, setErrorText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { loginUser } = useContext(ShopContext);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (email) {
-      alert(`Selamat datang kembali!`);
-      navigate('/');
+    if (email && password) {
+      setIsLoading(true);
+      setErrorText('');
+      const result = await loginUser(email, password);
+      setIsLoading(false);
+      
+      if (result.success) {
+        alert(`Selamat datang kembali, ${result.user.name}!`);
+        navigate('/');
+      } else {
+        setErrorText(result.message);
+      }
     }
   };
 
@@ -24,6 +37,11 @@ export default function Login() {
         </div>
         
         <form onSubmit={handleLogin}>
+          {errorText && (
+            <div style={{ backgroundColor: '#ffe3e3', color: 'var(--color-danger)', padding: '12px', borderRadius: '8px', marginBottom: '15px', textAlign: 'center', fontSize: '0.9rem', fontWeight: 'bold' }}>
+              {errorText}
+            </div>
+          )}
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold' }}>Email</label>
             <input 
@@ -50,8 +68,8 @@ export default function Login() {
             </div>
           </div>
           
-          <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: 'var(--color-pink-dark)', color: 'var(--color-white)', fontWeight: 'bold', borderRadius: '30px', margin: '20px 0', fontSize: '1rem', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-lavender-dark)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-pink-dark)'}>
-            Masuk
+          <button type="submit" disabled={isLoading} style={{ width: '100%', padding: '14px', backgroundColor: isLoading ? 'var(--color-gray)' : 'var(--color-pink-dark)', color: 'var(--color-white)', fontWeight: 'bold', borderRadius: '30px', margin: '20px 0', fontSize: '1rem', transition: 'background-color 0.2s', cursor: isLoading ? 'not-allowed' : 'pointer' }} onMouseEnter={(e) => { if(!isLoading) e.currentTarget.style.backgroundColor = 'var(--color-lavender-dark)'; }} onMouseLeave={(e) => { if(!isLoading) e.currentTarget.style.backgroundColor = 'var(--color-pink-dark)'; }}>
+            {isLoading ? 'Sedang Masuk...' : 'Masuk'}
           </button>
         </form>
         

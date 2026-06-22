@@ -1,17 +1,30 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import ShopContext from '../context/ShopContext';
 
 export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorText, setErrorText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { registerUser } = useContext(ShopContext);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (name && email && password) {
-      alert(`Akun berhasil dibuat! Silakan masuk.`);
-      navigate('/login');
+      setIsLoading(true);
+      setErrorText('');
+      const result = await registerUser(name, email, password);
+      setIsLoading(false);
+      
+      if (result.success) {
+        alert(`Akun berhasil dibuat! Silakan masuk.`);
+        navigate('/login');
+      } else {
+        setErrorText(result.message);
+      }
     }
   };
 
@@ -25,6 +38,11 @@ export default function Register() {
         </div>
         
         <form onSubmit={handleRegister}>
+          {errorText && (
+            <div style={{ backgroundColor: '#ffe3e3', color: 'var(--color-danger)', padding: '12px', borderRadius: '8px', marginBottom: '15px', textAlign: 'center', fontSize: '0.9rem', fontWeight: 'bold' }}>
+              {errorText}
+            </div>
+          )}
           <div style={{ marginBottom: '15px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold' }}>Nama Lengkap</label>
             <input 
@@ -58,9 +76,8 @@ export default function Register() {
               required
             />
           </div>
-          
-          <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: 'var(--color-pink-dark)', color: 'var(--color-white)', fontWeight: 'bold', borderRadius: '30px', margin: '20px 0', fontSize: '1rem', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-lavender-dark)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-pink-dark)'}>
-            Daftar Sekarang
+          <button type="submit" disabled={isLoading} style={{ width: '100%', padding: '14px', backgroundColor: isLoading ? 'var(--color-gray)' : 'var(--color-pink-dark)', color: 'var(--color-white)', fontWeight: 'bold', borderRadius: '30px', margin: '20px 0', fontSize: '1rem', transition: 'background-color 0.2s', cursor: isLoading ? 'not-allowed' : 'pointer' }} onMouseEnter={(e) => { if(!isLoading) e.currentTarget.style.backgroundColor = 'var(--color-lavender-dark)'; }} onMouseLeave={(e) => { if(!isLoading) e.currentTarget.style.backgroundColor = 'var(--color-pink-dark)'; }}>
+            {isLoading ? 'Mendaftarkan...' : 'Daftar Sekarang'}
           </button>
         </form>
         

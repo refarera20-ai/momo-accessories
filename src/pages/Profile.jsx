@@ -1,32 +1,55 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { FiUser, FiMail, FiPhone, FiMapPin, FiLogOut, FiShoppingBag, FiHeart } from 'react-icons/fi';
 import { useNavigate, Link } from 'react-router-dom';
 import ShopContext from '../context/ShopContext';
+import { supabase } from '../lib/supabase';
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { currentUser, setCurrentUser } = useContext(ShopContext);
+  const { currentUser, setCurrentUser, logoutUser } = useContext(ShopContext);
+
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+    }
+  }, [currentUser, navigate]);
 
   const [user, setUser] = useState({
+    id: currentUser?.id || '',
     name: currentUser?.name || '',
     email: currentUser?.email || '',
     phone: currentUser?.phone || '',
     address: currentUser?.address || ''
   });
 
+  if (!currentUser) return null;
+
   const handleChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value });
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    setCurrentUser(user);
-    alert('Profil berhasil diperbarui!');
+    try {
+      const { error } = await supabase.from('users').update({
+        name: user.name,
+        phone: user.phone,
+        address: user.address
+      }).eq('id', user.id);
+      
+      if (error) throw error;
+      
+      setCurrentUser(user);
+      alert('Profil berhasil diperbarui!');
+    } catch(err) {
+      alert('Gagal memperbarui profil: ' + err.message);
+    }
   };
 
   const handleLogout = () => {
     if (confirm('Apakah Anda yakin ingin keluar?')) {
-      navigate('/login');
+      logoutUser();
+      navigate('/');
     }
   };
 

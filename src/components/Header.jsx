@@ -4,7 +4,7 @@ import { useContext } from 'react';
 import ShopContext from '../context/ShopContext';
 
 export default function Header() {
-  const { unreadCustomer } = useContext(ShopContext);
+  const { unreadCustomer, currentUser } = useContext(ShopContext);
 
   return (
     <header className="glass-panel" style={{ 
@@ -57,9 +57,15 @@ export default function Header() {
                 </span>
               )}
             </Link>
-            <Link to="/profile" style={{ color: 'var(--color-pink-dark)', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-              <FiUser size={22} />
-            </Link>
+            {!currentUser ? (
+              <Link to="/login" style={{ color: 'var(--color-white)', backgroundColor: 'var(--color-pink-dark)', padding: '6px 14px', borderRadius: '20px', fontSize: '0.9rem', transition: 'transform 0.2s', textDecoration: 'none', boxShadow: '0 2px 10px rgba(255,133,179,0.3)' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
+                Masuk
+              </Link>
+            ) : (
+              <Link to="/profile" style={{ color: 'var(--color-pink-dark)', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
+                <FiUser size={22} />
+              </Link>
+            )}
           </div>
         </div>
       </div>

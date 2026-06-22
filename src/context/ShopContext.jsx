@@ -19,7 +19,7 @@ export const ShopProvider = ({ children }) => {
     try { return JSON.parse(localStorage.getItem('momo_admin')) || false; } catch (e) { return false; }
   });
   const [currentUser, setCurrentUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('momo_user')) || dbData.users[0]; } catch(e) { return dbData.users[0]; }
+    try { return JSON.parse(localStorage.getItem('momo_user')) || null; } catch(e) { return null; }
   });
 
   const defaultSettings = {
@@ -101,10 +101,57 @@ export const ShopProvider = ({ children }) => {
 
   useEffect(() => { localStorage.setItem('momo_unread_customer', unreadCustomer); }, [unreadCustomer]);
   useEffect(() => { localStorage.setItem('momo_unread_admin', unreadAdmin); }, [unreadAdmin]);
-  useEffect(() => { if (currentUser) localStorage.setItem('momo_user', JSON.stringify(currentUser)); }, [currentUser]);
+  useEffect(() => { 
+    if (currentUser) {
+      localStorage.setItem('momo_user', JSON.stringify(currentUser)); 
+    } else {
+      localStorage.removeItem('momo_user');
+    }
+  }, [currentUser]);
   useEffect(() => { localStorage.setItem('momo_admin', JSON.stringify(isAdminLoggedIn)); }, [isAdminLoggedIn]);
 
+  // --- MANUAL AUTH SYSTEM ---
+  const registerUser = async (name, email, password) => {
+    try {
+      const { data: existingUser } = await supabase.from('users').select('id').eq('email', email).single();
+      if (existingUser) return { success: false, message: "Email sudah terdaftar!" };
+
+      const { data: maxObj } = await supabase.from('users').select('id').order('id', { ascending: false }).limit(1);
+      const nextId = (maxObj?.[0]?.id || 0) + 1;
+
+      const newUser = { id: nextId, name, email, password, address: '' };
+      const { error } = await supabase.from('users').insert(newUser);
+      if (error) throw error;
+      
+      return { success: true };
+    } catch(e) {
+      return { success: false, message: e.message };
+    }
+  };
+
+  const loginUser = async (email, password) => {
+    try {
+      const { data: user, error } = await supabase.from('users').select('*').eq('email', email).eq('password', password).single();
+      if (error || !user) return { success: false, message: "Email atau Password salah!" };
+      
+      setCurrentUser(user);
+      return { success: true, user };
+    } catch(e) {
+      return { success: false, message: e.message || "Login failed" };
+    }
+  };
+
+  const logoutUser = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('momo_user');
+  };
+  // --------------------------
+
   const addToCart = async (productId, quantity = 1) => {
+    if (!currentUser) {
+      alert("⚠️ Sistem Keamanan: Anda harus Login atau Daftar terlebih dahulu agar keranjang Anda tidak tertukar dengan pengunjung lain!");
+      return;
+    }
     try {
       const userId = currentUser.id;
       const existing = cart.find(c => String(c.product_id) === String(productId) && String(c.user_id) === String(userId));
@@ -140,8 +187,12 @@ export const ShopProvider = ({ children }) => {
   };
 
   const toggleWishlist = async (productId) => {
+    if (!currentUser) {
+      alert("⚠️ Anda harus Login atau Daftar terlebih dahulu untuk menyimpan ke Wishlist!");
+      return;
+    }
     try {
-      const userId = currentUser?.id || 1;
+      const userId = currentUser.id;
       const existing = wishlist.find(w => String(w.product_id) === String(productId) && String(w.user_id) === String(userId));
       
       if (existing) {
@@ -162,6 +213,7 @@ export const ShopProvider = ({ children }) => {
   };
 
   const checkoutOrder = async (orderData) => {
+    if (!currentUser) return;
     const userCart = cart.filter(c => String(c.user_id) === String(currentUser.id));
     const subtotal = userCart.reduce((sum, item) => {
        const product = products.find(p => String(p.id) === String(item.product_id));
@@ -201,6 +253,7 @@ export const ShopProvider = ({ children }) => {
   };
 
   const clearCart = async () => {
+    if (!currentUser) return;
     const userCart = cart.filter(c => String(c.user_id) === String(currentUser.id));
     for(const item of userCart) {
       await supabase.from('carts').delete().eq('id', item.id);
@@ -209,6 +262,10 @@ export const ShopProvider = ({ children }) => {
   };
 
   const sendMessage = async (userId, text, sender) => {
+    if (!currentUser && sender === 'customer') {
+      alert("⚠️ Anda harus Login atau Daftar terlebih dahulu untuk mengirim pesan!");
+      return;
+    }
     await supabase.from('chat_messages').insert({
       id: new Date().getTime(),
       user_id: userId,
@@ -280,13 +337,13 @@ export const ShopProvider = ({ children }) => {
   };
 
   // Helper mappings for backward compatibility of UI
-  const mappedCart = cart.filter(c => String(c.user_id) === String(currentUser.id)).map(c => ({
+  const mappedCart = !currentUser ? [] : cart.filter(c => String(c.user_id) === String(currentUser.id)).map(c => ({
     ...c,
     product: products.find(p => String(p.id) === String(c.product_id)),
     productId: c.product_id // legacy UI mapping
   })).filter(c => c.product !== undefined);
 
-  const mappedWishlist = wishlist.filter(w => String(w.user_id) === String(currentUser.id)).map(w => ({
+  const mappedWishlist = !currentUser ? [] : wishlist.filter(w => String(w.user_id) === String(currentUser.id)).map(w => ({
     ...w,
     product: products.find(p => String(p.id) === String(w.product_id)),
     productId: w.product_id // legacy UI mapping
@@ -299,7 +356,7 @@ export const ShopProvider = ({ children }) => {
       wishlist: mappedWishlist,
       orders, chatHistory, storeSettings, categories, isAdminLoggedIn, currentUser,
       unreadCustomer, unreadAdmin, clearUnreadCustomer, clearUnreadAdmin,
-      setCurrentUser, addToCart, updateCartQuantity, removeFromCart, toggleWishlist, checkoutOrder, clearCart, sendMessage,
+      setCurrentUser, registerUser, loginUser, logoutUser, addToCart, updateCartQuantity, removeFromCart, toggleWishlist, checkoutOrder, clearCart, sendMessage,
       adminLogin, adminLogout, addProduct, editProduct, deleteProduct, addCategory, editCategory, deleteCategory, updateSettings
     }}>
       {children}
