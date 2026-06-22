@@ -34,8 +34,10 @@ export default function Checkout() {
     await checkoutOrder(formData);
 
     // Prepare WhatsApp Message
-    let productList = cart.map((item, i) => `- ${item.quantity}x ${item.product.name} (${formatting.format(item.product.price * item.quantity)})`).join('\n');
-    let message = `Halo ${storeSettings.storeName} 👋\n\nSaya ingin memesan:\n\n${productList}\n\nTermasuk Ongkir: ${formatting.format(shipping)}\nTotal: *${formatting.format(total)}*\n\nNama: ${formData.name}\nAlamat Penuh: ${formData.address}, ${formData.city}\nMetode Bayar: ${formData.paymentMethod === 'bank_transfer' ? 'Transfer Bank' : formData.paymentMethod === 'ewallet' ? 'E-Wallet' : 'COD'}`;
+    let productList = cart.map(item => `• ${item.product.name} ×${item.quantity} — ${formatting.format(item.product.price * item.quantity)}`).join('\n');
+    let paymentMethodText = formData.paymentMethod === 'bank_transfer' ? 'Transfer Bank' : formData.paymentMethod === 'ewallet' ? 'E-Wallet' : 'Bayar di Tempat (COD)';
+    
+    let message = `🎀 Halo ${storeSettings.storeName}!\n\nSaya ingin melakukan pemesanan:\n\n🛍️ Pesanan:\n${productList}\n\n🚚 Ongkir: ${formatting.format(shipping)}\n💰 Total Pembayaran: *${formatting.format(total)}*\n\n📋 Data Pemesan:\n👤 ${formData.name}\n📍 ${formData.address}, ${formData.city}\n💳 ${paymentMethodText}\n\nTerima kasih 😊✨`;
 
     let waUrl = `https://wa.me/${storeSettings.waNumber}?text=${encodeURIComponent(message)}`;
     

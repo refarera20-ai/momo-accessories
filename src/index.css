@@ -131,3 +131,41 @@ input, textarea {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-pink-dark);
 }
+
+/* Responsive Fixes for Mobile */
+@media (max-width: 768px) {
+  body, html {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  /* Header */
+  header .container {
+    flex-direction: column;
+    gap: 15px;
+    justify-content: center !important;
+  }
+  
+  header .container > div {
+    gap: 12px !important;
+    font-size: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  header .container > div > div {
+    margin-left: 5px !important;
+    padding-left: 15px !important;
+    gap: 15px !important;
+  }
+
+  /* Hero Section */
+  section .glass-panel {
+    padding: 25px !important;
+    text-align: center;
+  }
+  
+  h1 {
+    font-size: 2.2rem !important;
+  }
+}
