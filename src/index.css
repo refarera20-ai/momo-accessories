@@ -1,20 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap');
 
 :root {
   --color-pink: #FFD6E8;
   --color-pink-dark: #FF85B3;
   --color-lavender: #DCC6FF;
   --color-lavender-dark: #B990FF;
+  --color-cream: #FFF4E6;
   --color-white: #FFFFFF;
-  --color-gray-light: #F8F8F8;
-  --color-gray: #E0E0E0;
-  --color-text-dark: #333333;
+  --color-white-transparent: rgba(255, 255, 255, 0.75);
+  --color-gray-light: #FDFBFD;
+  --color-gray: #E8E2E4;
+  --color-text-dark: #4A4A4A;
   --color-text-muted: #888888;
   --color-danger: #FF6B6B;
   --color-success: #4CAF50;
   
   --font-heading: 'Poppins', sans-serif;
   --font-body: 'Nunito', sans-serif;
+
+  --shadow-soft: 0 8px 24px rgba(255, 133, 179, 0.12);
+  --shadow-hover: 0 16px 32px rgba(255, 133, 179, 0.25);
+  --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
 * {
@@ -28,16 +34,23 @@ body {
   background-color: var(--color-gray-light);
   color: var(--color-text-dark);
   -webkit-font-smoothing: antialiased;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(255, 214, 232, 0.4) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(220, 198, 255, 0.4) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(255, 244, 230, 0.5) 0%, transparent 50%);
+  background-attachment: fixed;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   color: var(--color-text-dark);
+  font-weight: 700;
 }
 
 a {
   text-decoration: none;
   color: inherit;
+  transition: all 0.3s ease;
 }
 
 ul {
@@ -49,11 +62,13 @@ button {
   cursor: pointer;
   border: none;
   background: none;
+  transition: all 0.3s ease;
 }
 
 input, textarea {
   font-family: var(--font-body);
   outline: none;
+  transition: all 0.3s ease;
 }
 
 /* Base Utilities */
@@ -61,4 +76,58 @@ input, textarea {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
+}
+
+/* Glassmorphism */
+.glass-panel {
+  background: var(--color-white-transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes pulse-soft {
+  0% { box-shadow: 0 0 0 0 rgba(255, 133, 179, 0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 133, 179, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 133, 179, 0); }
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.2) rotate(15deg); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-btn {
+  animation: pulse-soft 2s infinite;
+}
+
+.animate-twinkle {
+  animation: sparkle-twinkle 3s ease-in-out infinite;
+}
+
+/* Scrollbar Styling for cuteness */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-gray-light);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-pink);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-pink-dark);
 }
