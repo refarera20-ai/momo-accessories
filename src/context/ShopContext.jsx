@@ -105,21 +105,27 @@ export const ShopProvider = ({ children }) => {
   useEffect(() => { localStorage.setItem('momo_admin', JSON.stringify(isAdminLoggedIn)); }, [isAdminLoggedIn]);
 
   const addToCart = async (productId, quantity = 1) => {
-    const userId = currentUser.id;
-    const existing = cart.find(c => String(c.product_id) === String(productId) && String(c.user_id) === String(userId));
-    
-    if (existing) {
-      const newQty = existing.quantity + quantity;
-      await supabase.from('carts').update({ quantity: newQty }).eq('id', existing.id);
-    } else {
-      await supabase.from('carts').insert({
-        id: new Date().getTime(),
-        user_id: userId,
-        product_id: productId,
-        quantity
-      });
+    try {
+      const userId = currentUser.id;
+      const existing = cart.find(c => String(c.product_id) === String(productId) && String(c.user_id) === String(userId));
+      
+      if (existing) {
+        const newQty = existing.quantity + quantity;
+        const { error } = await supabase.from('carts').update({ quantity: newQty }).eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('carts').insert({
+          id: new Date().getTime(),
+          user_id: userId,
+          product_id: productId,
+          quantity
+        });
+        if (error) throw error;
+      }
+      setCart(await fetchData('carts'));
+    } catch (e) {
+      alert("Error addToCart: " + e.message);
     }
-    setCart(await fetchData('carts'));
   };
 
   const updateCartQuantity = async (cartItemId, newQuantity) => {
@@ -134,19 +140,25 @@ export const ShopProvider = ({ children }) => {
   };
 
   const toggleWishlist = async (productId) => {
-    const userId = currentUser?.id || 1;
-    const existing = wishlist.find(w => String(w.product_id) === String(productId) && String(w.user_id) === String(userId));
-    
-    if (existing) {
-      await supabase.from('wishlists').delete().eq('id', existing.id);
-    } else {
-      await supabase.from('wishlists').insert({
-        id: new Date().getTime(),
-        user_id: userId,
-        product_id: productId
-      });
+    try {
+      const userId = currentUser?.id || 1;
+      const existing = wishlist.find(w => String(w.product_id) === String(productId) && String(w.user_id) === String(userId));
+      
+      if (existing) {
+        const { error } = await supabase.from('wishlists').delete().eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('wishlists').insert({
+          id: new Date().getTime(),
+          user_id: userId,
+          product_id: productId
+        });
+        if (error) throw error;
+      }
+      setWishlist(await fetchData('wishlists'));
+    } catch (e) {
+      alert("Error toggleWishlist: " + e.message);
     }
-    setWishlist(await fetchData('wishlists'));
   };
 
   const checkoutOrder = async (orderData) => {
