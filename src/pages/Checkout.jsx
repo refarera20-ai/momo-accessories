@@ -23,7 +23,7 @@ export default function Checkout() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleCheckout = (e) => {
+  const handleCheckout = async (e) => {
     e.preventDefault();
     if (cart.length === 0) {
       alert('Keranjang Anda kosong!');
@@ -31,7 +31,7 @@ export default function Checkout() {
     }
     
     // Save to local order history
-    checkoutOrder(formData);
+    await checkoutOrder(formData);
 
     // Prepare WhatsApp Message
     let productList = cart.map((item, i) => `- ${item.quantity}x ${item.product.name} (${formatting.format(item.product.price * item.quantity)})`).join('\n');
@@ -39,8 +39,8 @@ export default function Checkout() {
 
     let waUrl = `https://wa.me/${storeSettings.waNumber}?text=${encodeURIComponent(message)}`;
     
-    // Clear the cart
-    clearCart();
+    // Clear the cart explicitly just in case
+    await clearCart();
 
     // Redirect to WhatsApp safely for Mobile Browsers
     window.location.href = waUrl;

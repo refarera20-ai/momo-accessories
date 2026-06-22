@@ -6,7 +6,7 @@ import ShopContext from '../context/ShopContext';
 export default function ProductCard({ product }) {
   const { addToCart, toggleWishlist, wishlist } = useContext(ShopContext);
 
-  const isWishlisted = wishlist.some(w => w.productId === product.id);
+  const isWishlisted = wishlist.some(w => String(w.productId) === String(product.id));
 
   return (
     <div style={{

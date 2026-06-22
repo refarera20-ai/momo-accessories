@@ -119,15 +119,18 @@ export const ShopProvider = ({ children }) => {
         quantity
       });
     }
+    setCart(await fetchData('carts'));
   };
 
   const updateCartQuantity = async (cartItemId, newQuantity) => {
     if (newQuantity < 1) newQuantity = 1;
     await supabase.from('carts').update({ quantity: newQuantity }).eq('id', cartItemId);
+    setCart(await fetchData('carts'));
   };
 
   const removeFromCart = async (cartItemId) => {
     await supabase.from('carts').delete().eq('id', cartItemId);
+    setCart(await fetchData('carts'));
   };
 
   const toggleWishlist = async (productId) => {
@@ -143,6 +146,7 @@ export const ShopProvider = ({ children }) => {
         product_id: productId
       });
     }
+    setWishlist(await fetchData('wishlists'));
   };
 
   const checkoutOrder = async (orderData) => {
@@ -178,6 +182,9 @@ export const ShopProvider = ({ children }) => {
       await supabase.from('carts').delete().eq('id', item.id);
     }
     
+    setCart(await fetchData('carts'));
+    setOrders(await fetchData('orders'));
+    
     return newOrder;
   };
 
@@ -186,6 +193,7 @@ export const ShopProvider = ({ children }) => {
     for(const item of userCart) {
       await supabase.from('carts').delete().eq('id', item.id);
     }
+    setCart(await fetchData('carts'));
   };
 
   const sendMessage = async (userId, text, sender) => {
@@ -196,6 +204,8 @@ export const ShopProvider = ({ children }) => {
       sender,
       time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
     });
+    
+    await fetchChats();
 
     if (sender === 'customer') {
       setUnreadAdmin(prev => prev + 1);
@@ -208,6 +218,7 @@ export const ShopProvider = ({ children }) => {
           time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
         });
         setUnreadCustomer(prev => prev + 1);
+        await fetchChats();
       }, 1500);
     } else if (sender === 'admin') {
       setUnreadCustomer(prev => prev + 1);
